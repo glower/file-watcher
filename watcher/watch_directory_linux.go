@@ -14,9 +14,9 @@ package watcher
 
 #define BUF_LEN (10 * (sizeof(struct inotify_event) + NAME_MAX + 1))
 
-extern void goCallbackFileChange(char* path, char* file, int action);
+extern void goCallbackFileChange(char* root, char* path, char* file, int action);
 
-static inline void *WatchDirectory(char* dir) {
+static inline void *WatchDirectory(char* root, char* dir) {
 	int inotifyFd, wd, j;
   	char buf[BUF_LEN] __attribute__ ((aligned(8)));
   	ssize_t numRead;
@@ -51,7 +51,7 @@ static inline void *WatchDirectory(char* dir) {
     	for (p = buf; p < buf + numRead; ) {
 			event = (struct inotify_event *) p;
 			printf("[INFO] CGO: file was changed: mask=%x, len=%d\n", event->mask, event->len);
-			goCallbackFileChange(dir, event->name, event->mask);
+			goCallbackFileChange(root, dir, event->name, event->mask);
 			p += sizeof(struct inotify_event) + event->len;
     	}
   	}
@@ -65,8 +65,8 @@ import (
 	"strings"
 	"unsafe"
 
-	fileinfo "github.com/glower/file-watcher/file"
 	"github.com/glower/file-watcher/notification"
+	fileinfo "github.com/glower/file-watcher/util"
 )
 
 // #define IN_ACCESS		0x00000001	/* File was accessed */
@@ -98,11 +98,11 @@ func convertMaskToAction(mask int) notification.ActionType {
 }
 
 // StartWatching starts a CGO function for getting the notifications
-func (i *DirectoryWatcher) StartWatching(dir string) {
-	log.Printf("linux.SetupDirectoryChangeNotification(): for [%s]\n", dir)
-	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+func (i *DirectoryWatcher) StartWatching(root string) {
+	log.Printf("linux.StartWatching(): for [%s]\n", root)
+	err := filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
 		if f.IsDir() {
-			go watchDir(path)
+			go watchDir(root, path)
 		}
 		return nil
 	})
@@ -111,27 +111,35 @@ func (i *DirectoryWatcher) StartWatching(dir string) {
 	}
 }
 
-func watchDir(path string) {
-	cpath := C.CString(path)
+func watchDir(rootDirToWatch string, subDir string) {
+	croot := C.CString(rootDirToWatch)
+	cdir := C.CString(subDir)
 	defer func() {
-		C.free(unsafe.Pointer(cpath))
+		C.free(unsafe.Pointer(croot))
+		C.free(unsafe.Pointer(cdir))
 	}()
-	C.WatchDirectory(cpath)
+	C.WatchDirectory(croot, cdir)
 }
 
 //export goCallbackFileChange
-func goCallbackFileChange(cpath, cfile *C.char, caction C.int) {
+func goCallbackFileChange(croot, cpath, cfile *C.char, caction C.int) {
+	root := strings.TrimSpace(C.GoString(croot))
 	path := strings.TrimSpace(C.GoString(cpath))
 	file := strings.TrimSpace(C.GoString(cfile))
 	action := convertMaskToAction(int(caction))
 
 	absoluteFilePath := filepath.Join(path, file)
-	fi, err := fileinfo.GetFileInformation(absoluteFilePath)
-
+	relativeFilePath, err := filepath.Rel(root, absoluteFilePath)
 	if err != nil {
-		log.Printf("[ERROR] linux.goCallbackFileChange(): %v\n", err)
 		fileError(err)
 		return
 	}
-	fileChangeNotifier(path, file, fi, action)
+
+	fi, err := fileinfo.GetFileInformation(absoluteFilePath)
+	if err != nil {
+		fileError(err)
+		return
+	}
+
+	fileChangeNotifier(root, relativeFilePath, fi, action)
 }

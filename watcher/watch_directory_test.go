@@ -5,33 +5,39 @@ package watcher
 import (
 	"testing"
 
-	"github.com/glower/file-watcher/types"
+	"github.com/glower/file-watcher/notification"
 )
 
 func TestSetupDirectoryWatcher(t *testing.T) {
 	type args struct {
-		callbackChan chan types.FileChangeNotification
-		filters      []types.Action
+		callbackChan  chan notification.Event
+		errorCh       chan notification.Error
+		options       *Options
+		actionFilters []notification.ActionType
+		fileFilters   []string
 	}
 
-	fileChangeNotificationChan := make(chan types.FileChangeNotification)
+	eventCh := make(chan notification.Event)
+	errorCh := make(chan notification.Error)
 
 	tests := []struct {
 		name string
 		args args
 		dir  string
-		want *types.FileChangeNotification
+		want *notification.Event
 	}{
 		{
 			name: "test 1: file change notification",
 			args: args{
-				callbackChan: fileChangeNotificationChan,
-				filters:      []types.Action{},
+				callbackChan:  eventCh,
+				errorCh:       errorCh,
+				options:       &Options{},
+				actionFilters: []notification.ActionType{},
+				fileFilters:   []string{},
 			},
 			dir: "/test1",
-			want: &types.FileChangeNotification{
+			want: &notification.Event{
 				Action:             1,
-				BackupToStorages:   []string(nil),
 				MimeType:           "image/jpeg",
 				Machine:            "tokyo",
 				FileName:           "file1.txt",
@@ -46,7 +52,7 @@ func TestSetupDirectoryWatcher(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := SetupDirectoryWatcher(tt.args.callbackChan, tt.args.filters)
+			w := Create(tt.args.callbackChan, tt.args.errorCh, tt.args.actionFilters, tt.args.fileFilters, tt.args.options)
 			w.StartWatching(tt.dir)
 			action := <-tt.args.callbackChan
 

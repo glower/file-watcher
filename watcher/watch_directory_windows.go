@@ -129,7 +129,7 @@ func goCallbackFileChange(cpath, cfile *C.char, caction C.int) {
 	fi, err := fileinfo.GetFileInformation(absoluteFilePath)
 
 	if err != nil {
-		log.Printf("[ERROR] windows.goCallbackFileChange(): %v\n", err)
+		fileError(err)
 		return
 	}
 

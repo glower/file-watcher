@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/glower/file-watcher/types"
+	"github.com/glower/file-watcher/notification"
 )
 
 type FakeFileInfo struct {
@@ -51,13 +51,13 @@ func (w *DirectoryWatcher) StartWatching(watchDirectoryPath string) {
 			watchDirectoryPath: watchDirectoryPath,
 			relativeFilePath:   relativeFilePath,
 		}
-		fileChangeNotifier(watchDirectoryPath, relativeFilePath, fi, types.Action(1)) // FileAdded
+		fileChangeNotifier(watchDirectoryPath, relativeFilePath, fi, notification.ActionType(1)) // FileAdded
 	case "/test2":
 		relativeFilePath := "test/file2.txt"
 		fi := &FakeFileInfo{
 			watchDirectoryPath: watchDirectoryPath,
 			relativeFilePath:   relativeFilePath,
 		}
-		fileChangeNotifier(watchDirectoryPath, relativeFilePath, fi, types.Action(2)) // FileRemoved
+		fileChangeNotifier(watchDirectoryPath, relativeFilePath, fi, notification.ActionType(2)) // FileRemoved
 	}
 }

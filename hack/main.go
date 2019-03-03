@@ -14,7 +14,7 @@ func main() {
 
 	eventCh, errorCh := watcher.Setup(
 		ctx,
-		[]string{"/srv/torrent/downloads", "/home/igor/Downloads"},
+		[]string{"C:\\Users\\Igor\\Downloads", "C:\\Users\\Igor\\Documents"},
 		[]notification.ActionType{},
 		[]string{".crdownload", ".lock", ".snapshot"},
 		nil)
@@ -22,7 +22,7 @@ func main() {
 	for {
 		select {
 		case file := <-eventCh:
-			log.Printf("%#v", file)
+			log.Printf("[EVENT] %#v", file)
 		case err := <-errorCh:
 			log.Printf("[ERROR] %#v", err)
 		}

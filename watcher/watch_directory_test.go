@@ -1,11 +1,11 @@
 // +build integration
 
-package watch
+package watcher
 
 import (
 	"testing"
 
-	"github.com/glower/file-watchers/types"
+	"github.com/glower/file-watcher/types"
 )
 
 func TestSetupDirectoryWatcher(t *testing.T) {

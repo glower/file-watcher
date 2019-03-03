@@ -1,13 +1,13 @@
 // +build integration
 
-package watch
+package watcher
 
 import (
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/glower/file-watchers/types"
+	"github.com/glower/file-watcher/types"
 )
 
 type FakeFileInfo struct {

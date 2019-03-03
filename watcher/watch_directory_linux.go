@@ -1,6 +1,6 @@
 // +build linux,!integration
 
-package watch
+package watcher
 
 /*
 #include <stdlib.h>
@@ -65,8 +65,8 @@ import (
 	"strings"
 	"unsafe"
 
-	fileinfo "github.com/glower/file-watchers/file"
-	"github.com/glower/file-watchers/types"
+	fileinfo "github.com/glower/file-watcher/file"
+	"github.com/glower/file-watcher/notification"
 )
 
 // #define IN_ACCESS		0x00000001	/* File was accessed */
@@ -80,20 +80,20 @@ import (
 // #define IN_CREATE		0x00000100	/* Subfile was created */
 // #define IN_DELETE		0x00000200	/* Subfile was deleted */
 // #define IN_DELETE_SELF	0x00000400	/* Self was deleted */
-func convertMaskToAction(mask int) types.Action {
+func convertMaskToAction(mask int) notification.ActionType {
 	switch mask {
 	case 2, 8: // File was modified
-		return types.Action(types.FileModified)
+		return notification.ActionType(notification.FileModified)
 	case 256: // Subfile was created
-		return types.Action(types.FileAdded)
+		return notification.ActionType(notification.FileAdded)
 	case 512: // Subfile was deleted
-		return types.Action(types.FileRemoved)
+		return notification.ActionType(notification.FileRemoved)
 	case 64: // File was moved from X
-		return types.Action(types.FileRenamedOldName)
+		return notification.ActionType(notification.FileRenamedOldName)
 	case 128: // File was moved to Y
-		return types.Action(types.FileRenamedNewName)
+		return notification.ActionType(notification.FileRenamedNewName)
 	default:
-		return types.Action(types.Invalid)
+		return notification.ActionType(notification.Invalid)
 	}
 }
 
@@ -130,6 +130,7 @@ func goCallbackFileChange(cpath, cfile *C.char, caction C.int) {
 
 	if err != nil {
 		log.Printf("[ERROR] linux.goCallbackFileChange(): %v\n", err)
+		fileError(err)
 		return
 	}
 	fileChangeNotifier(path, file, fi, action)

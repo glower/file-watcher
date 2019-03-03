@@ -1,15 +1,13 @@
-package types
+package notification
 
 import "time"
 
-// Action represents what happens with the file
-type Action int
+// ActionType represents what happens with the file
+type ActionType int
 
-// FileChangeNotification ...
-type FileChangeNotification struct {
-	Action
-	// If we want to store this file only at specific backup storage provider
-	BackupToStorages   []string
+// Event ...
+type Event struct {
+	Action             ActionType
 	MimeType           string
 	Machine            string
 	FileName           string
@@ -21,9 +19,15 @@ type FileChangeNotification struct {
 	Timestamp          time.Time
 }
 
+// Error ...
+type Error struct {
+	Stack   string
+	Message string
+}
+
 const (
 	// Invalid action is 0
-	Invalid Action = iota
+	Invalid ActionType = iota
 	// FileAdded - the file was added to the directory.
 	FileAdded // 1
 	// FileRemoved - the file was removed from the directory.

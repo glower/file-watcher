@@ -1,7 +1,6 @@
 package watch
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -63,22 +62,22 @@ func SetupDirectoryWatcher(callbackChan chan types.FileChangeNotification, filte
 	return watcher
 }
 
-func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo file.ExtendedFileInfoImplementer, action types.Action) error {
+func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo file.ExtendedFileInfoImplementer, action types.Action) {
 
 	// TODO: add some filter here
-	if fileInfo.IsDir() {
-		return fmt.Errorf("file change for a directory is not supported")
-	}
+	// if fileInfo.IsDir() {
+	// 	return fmt.Errorf("file change for a directory is not supported")
+	// }
 
-	// TODO: add filter for file names
-	if fileInfo.IsTemporaryFile() {
-		return fmt.Errorf("file change for a tmp file is not supported")
-	}
+	// // TODO: add filter for file names
+	// if fileInfo.IsTemporaryFile() {
+	// 	return fmt.Errorf("file change for a tmp file is not supported")
+	// }
 
 	for _, filter := range watcher.ActionFilters {
 		if action == filter {
 			log.Printf("fileChangeNotifier(): action [%s] is filtered\n", ActionToString(filter))
-			return nil
+			return
 		}
 	}
 
@@ -88,7 +87,7 @@ func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo fi
 	wait, exists := watcher.NotificationWaiter.LookupForFileNotification(absoluteFilePath)
 	if exists {
 		wait <- true
-		return nil
+		return
 	}
 
 	watcher.NotificationWaiter.RegisterFileNotification(absoluteFilePath)
@@ -96,8 +95,9 @@ func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo fi
 	host, _ := os.Hostname()
 	mimeType, err := fileInfo.ContentType()
 	if err != nil {
+		log.Printf("[ERROR] can't get ContentType from the file [%s]: %v\n", absoluteFilePath, err)
 		watcher.NotificationWaiter.UnregisterFileNotification(absoluteFilePath)
-		return fmt.Errorf("can't get ContentType from the file [%s]: %v", absoluteFilePath, err)
+		return
 	}
 
 	data := &types.FileChangeNotification{
@@ -114,6 +114,4 @@ func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo fi
 	}
 
 	go watcher.NotificationWaiter.Wait(data)
-
-	return nil
 }

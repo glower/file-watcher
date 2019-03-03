@@ -11,6 +11,7 @@ import (
 func TestSetupDirectoryWatcher(t *testing.T) {
 	type args struct {
 		callbackChan chan types.FileChangeNotification
+		filters      []types.Action
 	}
 
 	fileChangeNotificationChan := make(chan types.FileChangeNotification)
@@ -25,17 +26,18 @@ func TestSetupDirectoryWatcher(t *testing.T) {
 			name: "test 1: file change notification",
 			args: args{
 				callbackChan: fileChangeNotificationChan,
+				filters:      []types.Action{},
 			},
-			dir: "/foo/bar",
+			dir: "/test1",
 			want: &types.FileChangeNotification{
 				Action:             1,
 				BackupToStorages:   []string(nil),
 				MimeType:           "image/jpeg",
 				Machine:            "tokyo",
-				FileName:           "file.txt",
-				AbsolutePath:       "\\foo\\bar\\test\\file.txt",
-				RelativePath:       "test/file.txt",
-				DirectoryPath:      "/foo/bar",
+				FileName:           "file1.txt",
+				AbsolutePath:       "\\foo\\bar\\test\\file1.txt",
+				RelativePath:       "test/file1.txt",
+				DirectoryPath:      "/test1",
 				WatchDirectoryName: "foo",
 				Size:               12345,
 			},
@@ -44,7 +46,7 @@ func TestSetupDirectoryWatcher(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := SetupDirectoryWatcher(tt.args.callbackChan)
+			w := SetupDirectoryWatcher(tt.args.callbackChan, tt.args.filters)
 			w.StartWatching(tt.dir)
 			action := <-tt.args.callbackChan
 

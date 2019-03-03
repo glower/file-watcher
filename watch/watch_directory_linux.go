@@ -100,12 +100,15 @@ func convertMaskToAction(mask int) types.Action {
 // StartWatching starts a CGO function for getting the notifications
 func (i *DirectoryWatcher) StartWatching(dir string) {
 	log.Printf("linux.SetupDirectoryChangeNotification(): for [%s]\n", dir)
-	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if f.IsDir() {
 			go watchDir(path)
 		}
 		return nil
 	})
+	if err != nil {
+		log.Printf("[ERROR] linux.StartWatching(): %v\n", err)
+	}
 }
 
 func watchDir(path string) {
@@ -125,7 +128,9 @@ func goCallbackFileChange(cpath, cfile *C.char, caction C.int) {
 	absoluteFilePath := filepath.Join(path, file)
 	fi, err := fileinfo.GetFileInformation(absoluteFilePath)
 
-	if err == nil {
-		fileChangeNotifier(path, file, fi, action)
+	if err != nil {
+		log.Printf("[ERROR] linux.goCallbackFileChange(): %v\n", err)
+		return
 	}
+	fileChangeNotifier(path, file, fi, action)
 }

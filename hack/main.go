@@ -24,7 +24,10 @@ func main() {
 		case file := <-eventCh:
 			log.Printf("[EVENT] %#v", file)
 		case err := <-errorCh:
-			log.Printf("[ERROR] %#v", err)
+			log.Printf("[%s] %s\n", err.Level, err.Message)
+			if err.Level == "CRITICAL" {
+				log.Printf("%s\n", err.Stack)
+			}
 		}
 	}
 

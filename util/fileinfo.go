@@ -37,7 +37,7 @@ func GetFileInformation(absoluteFilePath string) (ExtendedFileInfoImplementer, e
 
 	fileInfo, err := os.Stat(absoluteFilePath)
 	if err != nil {
-		log.Printf("watch.fileChangeNotifier(): Can not stat file [%s]: %v\n", absoluteFilePath, err)
+		log.Printf("can not stat file [%s]: %v\n", absoluteFilePath, err)
 		return nil, err
 	}
 

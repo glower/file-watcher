@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -75,11 +74,12 @@ func Create(callbackCh chan notification.Event, errorCh chan notification.Error,
 	return watcher
 }
 
-func fileError(err error) {
-	watcher.ErrorCh <- notification.Error{
-		Stack:   string(debug.Stack()),
-		Message: err.Error(),
-	}
+func fileError(lvl string, err error) {
+	watcher.ErrorCh <- notification.FormatError(lvl, err.Error())
+}
+
+func fileDebug(lvl string, msg string) {
+	watcher.ErrorCh <- notification.FormatError(lvl, msg)
 }
 
 func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo file.ExtendedFileInfoImplementer, action notification.ActionType) {
@@ -93,7 +93,7 @@ func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo fi
 
 	for _, fileFilter := range watcher.FileFilters {
 		if strings.Contains(absoluteFilePath, fileFilter) {
-			log.Printf("fileChangeNotifier(): file [%s] is filtered\n", fileFilter)
+			fileDebug("DEBUG", fmt.Sprintf("fileChangeNotifier(): file [%s] is filtered\n", fileFilter))
 			return
 		}
 	}
@@ -118,7 +118,7 @@ func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo fi
 	host, _ := os.Hostname()
 	mimeType, err := fileInfo.ContentType()
 	if err != nil {
-		fileError(fmt.Errorf("can't get ContentType from the file [%s]: %v", absoluteFilePath, err))
+		fileError("WARNING", fmt.Errorf("can't get ContentType from the file [%s]: %v", absoluteFilePath, err))
 		watcher.NotificationWaiter.UnregisterFileNotification(absoluteFilePath)
 		return
 	}

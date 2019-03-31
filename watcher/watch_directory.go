@@ -10,6 +10,7 @@ import (
 
 	"github.com/glower/file-watcher/notification"
 	file "github.com/glower/file-watcher/util"
+	"github.com/google/uuid"
 )
 
 // ActionToString maps Action value to string
@@ -124,7 +125,16 @@ func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo fi
 		return
 	}
 
+	checksum, err := fileInfo.Checksum()
+	if err != nil {
+		fileError("WARNING", fmt.Errorf("can't get Checksum from the file [%s]: %v", absoluteFilePath, err))
+		watcher.NotificationWaiter.UnregisterFileNotification(absoluteFilePath)
+		return
+	}
+
 	data := &notification.Event{
+		UUID:               uuid.New(),
+		Checksum:           checksum,
 		MimeType:           mimeType,
 		AbsolutePath:       absoluteFilePath,
 		Action:             action,

@@ -14,7 +14,7 @@ func main() {
 
 	eventCh, errorCh := watcher.Setup(
 		ctx,
-		[]string{"C:\\Users\\Igor\\Downloads", "C:\\Users\\Igor\\Documents"},
+		[]string{"/home/igor/Download"},
 		[]notification.ActionType{},
 		[]string{".crdownload", ".lock", ".snapshot"},
 		nil)

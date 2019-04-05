@@ -86,7 +86,7 @@ func fileDebug(lvl string, msg string) {
 
 func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo file.ExtendedFileInfoImplementer, action notification.ActionType) {
 
-	if watcher.Options.IgnoreDirectoies == true && fileInfo.IsDir() {
+	if watcher.Options.IgnoreDirectoies && fileInfo.IsDir() {
 		fileDebug("DEBUG", fmt.Sprintf("file change for a directory [%s] is filtered", relativeFilePath))
 		return
 	}

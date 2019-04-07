@@ -1,0 +1,7 @@
+[ ] Write good README.md
+[ ] Add method documentation
+[ ] Add wiki with more examples and how to use and build
+[ ] Add more tests
+[ ] Add CI integration
+[ ] Add go versioning
+[ ] Windows cgo code leaking some memory, fix it

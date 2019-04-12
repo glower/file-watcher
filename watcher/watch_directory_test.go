@@ -3,6 +3,7 @@
 package watcher
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/glower/file-watcher/notification"
@@ -53,6 +54,13 @@ func TestSetupDirectoryWatcher(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := Create(tt.args.callbackChan, tt.args.errorCh, tt.args.actionFilters, tt.args.fileFilters, tt.args.options)
+			
+			// TODO: test error channel
+			go func() {
+				msg := <-errorCh
+				fmt.Printf("[%s] %s\n", msg.Level, msg.Message)
+			}()
+
 			w.StartWatching(tt.dir)
 			action := <-tt.args.callbackChan
 

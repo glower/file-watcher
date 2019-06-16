@@ -36,6 +36,7 @@ type DirectoryWatcher struct {
 	Options       *Options
 	EventCh       chan notification.Event
 	ErrorCh       chan notification.Error
+	StopWatchCh   chan string
 
 	NotificationWaiter notification.Waiter
 }
@@ -43,6 +44,7 @@ type DirectoryWatcher struct {
 // DirectoryWatcherImplementer ...
 type DirectoryWatcherImplementer interface {
 	StartWatching(path string)
+	StopWatching(path string)
 }
 
 // Options ...
@@ -64,6 +66,7 @@ func Create(callbackCh chan notification.Event, errorCh chan notification.Error,
 			Options:       options,
 			EventCh:       callbackCh,
 			ErrorCh:       errorCh,
+			StopWatchCh:   make(chan string),
 			NotificationWaiter: notification.Waiter{
 				EventCh:  callbackCh,
 				Timeout:  time.Duration(5 * time.Second),
@@ -72,6 +75,11 @@ func Create(callbackCh chan notification.Event, errorCh chan notification.Error,
 		}
 	})
 	return watcher
+}
+
+// StopWatching sends a signal to stop watching a directory
+func (w *DirectoryWatcher) StopWatching(watchDirectoryPath string) {
+	w.StopWatchCh <- watchDirectoryPath
 }
 
 func fileError(lvl string, err error) {
@@ -108,7 +116,7 @@ func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo fi
 	}
 
 	fileDebug("DEBUG", fmt.Sprintf("watch directory path [%s], relative file path [%s], action [%s]\n", watchDirectoryPath, relativeFilePath, ActionToString(action)))
-
+	// notification event is registered for this path, wait for 5 secs
 	wait, exists := watcher.NotificationWaiter.LookupForFileNotification(absoluteFilePath)
 	if exists {
 		wait <- true

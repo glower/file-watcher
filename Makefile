@@ -25,12 +25,11 @@ gofmt:
 	@UNFMT=$$($(GFMT)); if [ -n "$$UNFMT" ]; then echo "gofmt needed on" $$UNFMT && exit 1; fi
 
 linux:
-	GOOS=linux GOARCH=amd64 go build hack/cli/main.go
+	GOOS=linux GOARCH=amd64 go run hack/cli/main.go
 
 clean:
-    go clean
-    rm -f $(BINARY_NAME)
-deps:
-    go build -v ./...
+	go clean
+	rm -f $(BINARY_NAME)
+
 upgrade:
-    go get -u
+	go get -u

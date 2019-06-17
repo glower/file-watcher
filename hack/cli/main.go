@@ -10,7 +10,7 @@ import (
 	"github.com/glower/file-watcher/watcher"
 )
 
-var dirsWin = []string{"C:\\Users\\Igor\\Files", "C:\\Users\\Igor\\DownloadsDownloads"}
+var dirsWin = []string{"C:\\Users\\Igor\\Files", "C:\\Users\\Igor\\Downloads"}
 var dirsLin = []string{"/home/igor/Downloads", "/home/igor/Documents"}
 
 func main() {
@@ -36,10 +36,12 @@ func main() {
 		nil)
 
 	go func() {
-		time.Sleep(30 * time.Second)
+		time.Sleep(5 * time.Second)
 		w.StopWatching(dirs[0])
-		time.Sleep(50 * time.Second)
+		time.Sleep(5 * time.Second)
 		w.StopWatching(dirs[1])
+		time.Sleep(5 * time.Second)
+		w.StartWatching(dirs[1])
 	}()
 
 	for {

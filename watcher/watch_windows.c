@@ -75,8 +75,7 @@ void StopWatching(char *dir) {
 
 	// The pipe connected; change to message-read mode.
 	DWORD dwMode = PIPE_READMODE_MESSAGE;
-	BOOL fSuccess = SetNamedPipeHandleState(pipe, &dwMode, NULL, NULL);
-	if (!fSuccess) {
+	if (!SetNamedPipeHandleState(pipe, &dwMode, NULL, NULL)) {
 		printf("[CGO] [ERROR] StopWatching(): SetNamedPipeHandleState faild: %d\n", GetLastError());
 		return;
 	}
@@ -143,7 +142,7 @@ void WatchDirectory(char *dir) {
 			
         switch (waitStatus) {
 		case WAIT_OBJECT_0:
-			printf("[CGO] [INFO] A file was created, renamed, or deleted\n");
+			// printf("[CGO] [INFO] A file was created, renamed, or deleted\n");
 			GetOverlappedResult(
 				handle,			 // pipe handle
 				&ovlEventHandle, // OVERLAPPED structure
@@ -191,9 +190,9 @@ void WatchDirectory(char *dir) {
             if (numRead > 0) {
 			    int i = strcmp(buffer, dir);
 				if (i == 0) {
-				    printf("[CGO] [INFO] stop for %s !!!\n", buffer);
 					CloseHandle(handle);
 					totalWatchers--;
+					ResetEvent(eventToChild);
 					goto EndWhile;
 				}
 			}
@@ -212,5 +211,5 @@ void WatchDirectory(char *dir) {
 			}
 	}
 	EndWhile: ;
-	printf("[CGO] [INFO] stop %s\n", dir);
+	printf("[CGO] [INFO] WatchDirectory(): stop watching %s\n", dir);
 }

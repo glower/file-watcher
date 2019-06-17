@@ -54,9 +54,8 @@ type Options struct {
 
 type Callback struct {
 	Stop  bool
-	Pause bool	
+	Pause bool
 }
-
 
 var watcher *DirectoryWatcher
 var once sync.Once

@@ -6,7 +6,6 @@ package watcher
 import "C"
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,9 +25,14 @@ func (w *DirectoryWatcher) StartWatching(path string) {
 		fileError("CRITICAL", err)
 		return
 	}
+	_, found := LookupForCallback(path)
+	if found {
+		fileDebug("INFO", fmt.Sprintf("directory [%s] is already watched", path))
+		return
+	}
 	ch := RegisterCallback(path)
 
-	log.Printf("windows.StartWatching(): for [%s]\n", path)
+	fileDebug("INFO", fmt.Sprintf("start watching [%s]\n", path))
 	cpath := C.CString(path)
 	defer func() {
 		UnregisterCallback(path)
@@ -39,9 +43,7 @@ func (w *DirectoryWatcher) StartWatching(path string) {
 		for {
 			select {
 			case p := <-ch:
-				fmt.Printf("Income channel message to stop directory watcher\n")
 				if p.Stop {
-					fmt.Printf(">>> Stoping directory watcher\n")
 					C.StopWatching(cpath)
 				}
 			}
@@ -49,6 +51,7 @@ func (w *DirectoryWatcher) StartWatching(path string) {
 	}()
 
 	C.WatchDirectory(cpath)
+	fileDebug("INFO", fmt.Sprintf("[%s] is not watched anymore", path))
 }
 
 //export goCallbackFileChange
@@ -57,7 +60,7 @@ func goCallbackFileChange(cpath, cfile *C.char, caction C.int) {
 	file := strings.TrimSpace(C.GoString(cfile))
 	action := notification.ActionType(int(caction))
 
-	fmt.Printf(">>> goCallbackFileChange(): path=%s, file=%s, action=%s\n", path, file, ActionToString(action))
+	// fmt.Printf("goCallbackFileChange(): path=%s, file=%s, action=%s\n", path, file, ActionToString(action))
 
 	absoluteFilePath := filepath.Join(path, file)
 	fi, err := fileinfo.GetFileInformation(absoluteFilePath)

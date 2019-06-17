@@ -1,4 +1,4 @@
 package watcher
 
 // Version is the current file watcher version.
-const Version = "v1.4.4"
+const Version = "v2.0.0-beta"

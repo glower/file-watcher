@@ -1,6 +1,8 @@
 export CGO_ENABLED?=1
-REPO=bakku-app/
+export GO111MODULE=on
+REPO=file-watcher/
 GO?=go
+BINARY_NAME=file-watcher
 
 LINT_FLAGS := run -v --deadline=120s
 LINTER_EXE := golangci-lint
@@ -21,3 +23,14 @@ lint: $(LINTER)
 GFMT=find . -not \( \( -wholename "./vendor" \) -prune \) -name "*.go" | xargs gofmt -l
 gofmt:
 	@UNFMT=$$($(GFMT)); if [ -n "$$UNFMT" ]; then echo "gofmt needed on" $$UNFMT && exit 1; fi
+
+linux:
+	GOOS=linux GOARCH=amd64 go build hack/cli/main.go
+
+clean:
+    go clean
+    rm -f $(BINARY_NAME)
+deps:
+    go build -v ./...
+upgrade:
+    go get -u

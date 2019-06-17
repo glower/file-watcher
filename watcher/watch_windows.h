@@ -1,4 +1,4 @@
-#ifndef WIN_H_   /* Include guard */
+#ifndef WIN_H_
 #define WIN_H_
 
 #include <stdlib.h>

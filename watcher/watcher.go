@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/glower/file-watcher/notification"
 )
@@ -39,6 +38,10 @@ func Setup(ctx context.Context, dirsToWatch []string, actionFilters []notificati
 
 // StopWatching ...
 func (w *Watch) StopWatching(dir string) {
-	fmt.Printf("Watcher.StopWatching(): %s\n", dir)
 	w.watcher.StopWatching(dir)
+}
+
+// StartWatching ...
+func (w *Watch) StartWatching(dir string) {
+	go w.watcher.StartWatching(dir)
 }

@@ -2,7 +2,7 @@
 
 package watcher
 
-// #include "watch_win.h"
+// #include "watch_windows.h"
 import "C"
 import (
 	"fmt"

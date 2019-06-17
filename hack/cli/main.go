@@ -10,23 +10,36 @@ import (
 	"github.com/glower/file-watcher/watcher"
 )
 
+var dirsWin = []string{"C:\\Users\\Igor\\Files", "C:\\Users\\Igor\\DownloadsDownloads"}
+var dirsLin = []string{"/home/igor/Downloads", "/home/igor/Documents"}
+
 func main() {
 	log.Println("Starting the service ...")
 	ctx := context.TODO()
 
+	var dirs []string
+
+	switch runtime.GOOS {
+	case "windows":
+		dirs = dirsWin
+	case "linux":
+		dirs = dirsLin
+	default:
+		panic("not supported OS")
+	}
+
 	w := watcher.Setup(
 		ctx,
-		[]string{"C:\\Users\\Igor\\Files", "C:\\Users\\Igor\\Downloads"},
-		// []string{"C:\\Users\\Igor\\Downloads"},
+		dirs,
 		[]notification.ActionType{},
 		[]string{".crdownload", ".lock", ".snapshot"},
 		nil)
 
 	go func() {
 		time.Sleep(30 * time.Second)
-		w.StopWatching("C:\\Users\\Igor\\Files")
+		w.StopWatching(dirs[0])
 		time.Sleep(50 * time.Second)
-		w.StopWatching("C:\\Users\\Igor\\Downloads")
+		w.StopWatching(dirs[1])
 	}()
 
 	for {

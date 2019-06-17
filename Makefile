@@ -1,6 +1,8 @@
 export CGO_ENABLED?=1
+export GO111MODULE=on
 REPO=file-watcher/
 GO?=go
+BINARY_NAME=file-watcher
 
 LINT_FLAGS := run -v --deadline=120s
 LINTER_EXE := golangci-lint
@@ -24,3 +26,11 @@ gofmt:
 
 linux:
 	GOOS=linux GOARCH=amd64 go build hack/cli/main.go
+
+clean:
+    go clean
+    rm -f $(BINARY_NAME)
+deps:
+    go build -v ./...
+upgrade:
+    go get -u

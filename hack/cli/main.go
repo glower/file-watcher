@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"runtime"
+	"time"
 
 	"github.com/glower/file-watcher/notification"
 	"github.com/glower/file-watcher/watcher"
@@ -13,23 +14,27 @@ func main() {
 	log.Println("Starting the service ...")
 	ctx := context.TODO()
 
-	eventCh, errorCh := watcher.Setup(
+	w := watcher.Setup(
 		ctx,
-		[]string{"/home/igor/Downloads", "C:\\Users\\Igor\\Downloads"},
+		[]string{"C:\\Users\\Igor\\Files", "C:\\Users\\Igor\\Downloads"},
+		// []string{"C:\\Users\\Igor\\Downloads"},
 		[]notification.ActionType{},
 		[]string{".crdownload", ".lock", ".snapshot"},
 		nil)
 
+	go func() {
+		time.Sleep(30 * time.Second)
+		w.StopWatching("C:\\Users\\Igor\\Files")
+		time.Sleep(50 * time.Second)
+		w.StopWatching("C:\\Users\\Igor\\Downloads")
+	}()
+
 	for {
 		select {
-		case file := <-eventCh:
+		case file := <-w.EventCh:
 			log.Printf("[EVENT] %#v", file)
-			PrintMemUsage()
-		case err := <-errorCh:
+		case err := <-w.ErrorCh:
 			log.Printf("[%s] %s\n", err.Level, err.Message)
-			if err.Level == "CRITICAL" {
-				log.Printf("%s\n", err.Stack)
-			}
 		}
 	}
 }

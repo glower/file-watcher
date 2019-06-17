@@ -64,3 +64,6 @@ func (w *DirectoryWatcher) StartWatching(watchDirectoryPath string) {
 		fileChangeNotifier(watchDirectoryPath, relativeFilePath, fi, notification.ActionType(2)) // FileRemoved
 	}
 }
+
+func (w *DirectoryWatcher) StopWatching(watchDirectoryPath string) {
+}

@@ -26,31 +26,29 @@ func (w *DirectoryWatcher) StartWatching(path string) {
 		fileError("CRITICAL", err)
 		return
 	}
+	ch := RegisterCallback(path)
 
 	log.Printf("windows.StartWatching(): for [%s]\n", path)
 	cpath := C.CString(path)
 	defer func() {
+		UnregisterCallback(path)
 		C.free(unsafe.Pointer(cpath))
 	}()
 
-	// TODO: refactor me
 	go func() {
 		for {
 			select {
-			case p := <-w.StopWatchCh:
-				fmt.Printf("Income channel message to stop [%s] directory watcher\n", p)
-				if p == path {
-					fmt.Printf(">>> Stoping [%s] directory watcher\n", p)
+			case p := <-ch:
+				fmt.Printf("Income channel message to stop directory watcher\n")
+				if p.Stop {
+					fmt.Printf(">>> Stoping directory watcher\n")
 					C.StopWatching(cpath)
-				} else {
-					w.StopWatchCh <- p
 				}
 			}
 		}
 	}()
 
 	C.WatchDirectory(cpath)
-	fmt.Printf(">>> Stoping DONE for [%s]\n", path)
 }
 
 //export goCallbackFileChange

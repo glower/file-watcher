@@ -52,10 +52,38 @@ type Options struct {
 	IgnoreDirectoies bool
 }
 
+type Callback struct {
+	Stop  bool
+	Pause bool	
+}
+
+
 var watcher *DirectoryWatcher
 var once sync.Once
 
-// TODO: add options for filter dirs
+var watchersCallbackMutex sync.Mutex
+var watchersCallback = make(map[string]chan Callback)
+
+func RegisterCallback(path string) chan Callback {
+	cb := make(chan Callback)
+	watchersCallbackMutex.Lock()
+	defer watchersCallbackMutex.Unlock()
+	watchersCallback[path] = cb
+	return cb
+}
+
+func UnregisterCallback(path string) {
+	watchersCallbackMutex.Lock()
+	defer watchersCallbackMutex.Unlock()
+	delete(watchersCallback, path)
+}
+
+func LookupForCallback(path string) (chan Callback, bool) {
+	watchersCallbackMutex.Lock()
+	defer watchersCallbackMutex.Unlock()
+	data, ok := watchersCallback[path]
+	return data, ok
+}
 
 // Create ...
 func Create(callbackCh chan notification.Event, errorCh chan notification.Error, filters []notification.ActionType, fileFilters []string, options *Options) *DirectoryWatcher {
@@ -66,7 +94,6 @@ func Create(callbackCh chan notification.Event, errorCh chan notification.Error,
 			Options:       options,
 			EventCh:       callbackCh,
 			ErrorCh:       errorCh,
-			StopWatchCh:   make(chan string),
 			NotificationWaiter: notification.Waiter{
 				EventCh:  callbackCh,
 				Timeout:  time.Duration(5 * time.Second),
@@ -79,7 +106,14 @@ func Create(callbackCh chan notification.Event, errorCh chan notification.Error,
 
 // StopWatching sends a signal to stop watching a directory
 func (w *DirectoryWatcher) StopWatching(watchDirectoryPath string) {
-	w.StopWatchCh <- watchDirectoryPath
+	// w.StopWatchCh <- watchDirectoryPath
+	ch, ok := LookupForCallback(watchDirectoryPath)
+	if ok {
+		ch <- Callback{
+			Stop:  true,
+			Pause: false,
+		}
+	}
 }
 
 func fileError(lvl string, err error) {

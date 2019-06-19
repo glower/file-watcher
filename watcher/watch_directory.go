@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -49,6 +50,8 @@ type DirectoryWatcherImplementer interface {
 
 // Options ...
 type Options struct {
+	ActionFilters    []notification.ActionType
+	FileFilters      []string
 	IgnoreDirectoies bool
 }
 
@@ -84,15 +87,14 @@ func LookupForCallback(path string) (chan Callback, bool) {
 	return data, ok
 }
 
-// Create ...
-func Create(callbackCh chan notification.Event, errorCh chan notification.Error, filters []notification.ActionType, fileFilters []string, options *Options) *DirectoryWatcher {
+// Create new global instance of file watcher
+func Create(ctx context.Context, callbackCh chan notification.Event, errorCh chan notification.Error, options *Options) *DirectoryWatcher {
 	once.Do(func() {
+		go processContext(ctx)
 		watcher = &DirectoryWatcher{
-			ActionFilters: filters,
-			FileFilters:   fileFilters,
-			Options:       options,
-			EventCh:       callbackCh,
-			ErrorCh:       errorCh,
+			Options: options,
+			EventCh: callbackCh,
+			ErrorCh: errorCh,
 			NotificationWaiter: notification.Waiter{
 				EventCh:  callbackCh,
 				Timeout:  time.Duration(5 * time.Second),
@@ -103,9 +105,25 @@ func Create(callbackCh chan notification.Event, errorCh chan notification.Error,
 	return watcher
 }
 
+func processContext(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			watchersCallbackMutex.Lock()
+			defer watchersCallbackMutex.Unlock()
+			// watchersCallback[path] = cb
+			for _, ch := range watchersCallback {
+				ch <- Callback{
+					Stop: true,
+				}
+			}
+			return
+		}
+	}
+}
+
 // StopWatching sends a signal to stop watching a directory
 func (w *DirectoryWatcher) StopWatching(watchDirectoryPath string) {
-	// w.StopWatchCh <- watchDirectoryPath
 	ch, ok := LookupForCallback(watchDirectoryPath)
 	if ok {
 		ch <- Callback{
@@ -134,7 +152,7 @@ func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo fi
 
 	absoluteFilePath := filepath.Join(watchDirectoryPath, relativeFilePath)
 
-	for _, fileFilter := range watcher.FileFilters {
+	for _, fileFilter := range watcher.Options.FileFilters {
 		if strings.Contains(absoluteFilePath, fileFilter) {
 			fileDebug("DEBUG", fmt.Sprintf("file [%s] is filtered", fileFilter))
 			return

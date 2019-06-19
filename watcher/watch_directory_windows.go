@@ -40,12 +40,9 @@ func (w *DirectoryWatcher) StartWatching(path string) {
 	}()
 
 	go func() {
-		for {
-			select {
-			case p := <-ch:
-				if p.Stop {
-					C.StopWatching(cpath)
-				}
+		for p := range ch {
+			if p.Stop {
+				C.StopWatching(cpath)
 			}
 		}
 	}()

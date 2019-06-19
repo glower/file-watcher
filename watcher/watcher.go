@@ -6,7 +6,9 @@ import (
 	"github.com/glower/file-watcher/notification"
 )
 
+// Watch ...
 type Watch struct {
+	ctx     context.Context
 	EventCh chan notification.Event
 	ErrorCh chan notification.Error
 
@@ -14,23 +16,19 @@ type Watch struct {
 }
 
 // Setup adds a watcher for a file changes in specified directories and returns a channel for notifications
-func Setup(ctx context.Context, dirsToWatch []string, actionFilters []notification.ActionType, fileFilters []string, options *Options) *Watch {
+func Setup(ctx context.Context, options *Options) *Watch {
 	eventCh := make(chan notification.Event)
 	errorCh := make(chan notification.Error)
-
 	if options == nil {
 		options = &Options{IgnoreDirectoies: true}
 	}
 
-	watcher := Create(eventCh, errorCh, actionFilters, fileFilters, options)
+	watcher := Create(ctx, eventCh, errorCh, options)
 	w := &Watch{
+		ctx:     ctx,
 		ErrorCh: errorCh,
 		EventCh: eventCh,
 		watcher: watcher,
-	}
-
-	for _, dir := range dirsToWatch {
-		go watcher.StartWatching(dir)
 	}
 
 	return w

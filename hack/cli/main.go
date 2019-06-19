@@ -6,7 +6,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/glower/file-watcher/notification"
 	"github.com/glower/file-watcher/watcher"
 )
 
@@ -30,10 +29,13 @@ func main() {
 
 	w := watcher.Setup(
 		ctx,
-		dirs,
-		[]notification.ActionType{},
-		[]string{".crdownload", ".lock", ".snapshot"},
-		nil)
+		&watcher.Options{
+			IgnoreDirectoies: true,
+			FileFilters:      []string{".crdownload", ".lock", ".snapshot"},
+		})
+	for _, dir := range dirs {
+		w.StartWatching(dir)
+	}
 
 	go func() {
 		time.Sleep(5 * time.Second)

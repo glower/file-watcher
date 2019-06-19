@@ -43,3 +43,8 @@ func (w *Watch) StopWatching(dir string) {
 func (w *Watch) StartWatching(dir string) {
 	go w.watcher.StartWatching(dir)
 }
+
+// CreateFileAddedNotification creates fileAdded event for given path and file
+func (w *Watch) CreateFileAddedNotification(watchDirectoryPath, relativeFilePath string) {
+	w.watcher.CreateFileAddedNotification(watchDirectoryPath, relativeFilePath)
+}

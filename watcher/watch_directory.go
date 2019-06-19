@@ -143,6 +143,18 @@ func fileDebug(lvl string, msg string) {
 	watcher.ErrorCh <- notification.FormatError(lvl, msg)
 }
 
+func (w *DirectoryWatcher) CreateFileAddedNotification(watchDirectoryPath, relativeFilePath string) {
+	absoluteFilePath := filepath.Join(watchDirectoryPath, relativeFilePath)
+	fi, err := file.GetFileInformation(absoluteFilePath)
+
+	if err != nil {
+		fileError("WARN", err)
+		return
+	}
+
+	fileChangeNotifier(watchDirectoryPath, relativeFilePath, fi, notification.FileAdded)
+}
+
 func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo file.ExtendedFileInfoImplementer, action notification.ActionType) {
 
 	if watcher.Options.IgnoreDirectoies && fileInfo.IsDir() {

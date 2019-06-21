@@ -9,6 +9,9 @@ import (
 // ActionType represents what happens with the file
 type ActionType int
 
+// MetaInfo is additional info for any type of event
+type MetaInfo map[string]string
+
 // Event ...
 type Event struct {
 	Action             ActionType
@@ -23,6 +26,7 @@ type Event struct {
 	Timestamp          time.Time
 	UUID               uuid.UUID
 	Checksum           string
+	MetaInfo           *MetaInfo
 }
 
 const (

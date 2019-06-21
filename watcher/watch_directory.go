@@ -143,7 +143,7 @@ func fileDebug(lvl string, msg string) {
 	watcher.ErrorCh <- notification.FormatError(lvl, msg)
 }
 
-func (w *DirectoryWatcher) CreateFileAddedNotification(watchDirectoryPath, relativeFilePath string) {
+func (w *DirectoryWatcher) CreateFileAddedNotification(watchDirectoryPath, relativeFilePath string, meta *notification.MetaInfo) {
 	absoluteFilePath := filepath.Join(watchDirectoryPath, relativeFilePath)
 	fi, err := file.GetFileInformation(absoluteFilePath)
 
@@ -152,10 +152,10 @@ func (w *DirectoryWatcher) CreateFileAddedNotification(watchDirectoryPath, relat
 		return
 	}
 
-	fileChangeNotifier(watchDirectoryPath, relativeFilePath, fi, notification.FileAdded)
+	fileChangeNotifier(watchDirectoryPath, relativeFilePath, fi, notification.FileAdded, meta)
 }
 
-func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo file.ExtendedFileInfoImplementer, action notification.ActionType) {
+func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo file.ExtendedFileInfoImplementer, action notification.ActionType, meta *notification.MetaInfo) {
 
 	if watcher.Options.IgnoreDirectoies && fileInfo.IsDir() {
 		fileDebug("DEBUG", fmt.Sprintf("file change for a directory [%s] is filtered", relativeFilePath))
@@ -216,6 +216,7 @@ func fileChangeNotifier(watchDirectoryPath, relativeFilePath string, fileInfo fi
 		Size:               fileInfo.Size(),
 		Timestamp:          fileInfo.ModTime(),
 		WatchDirectoryName: filepath.Base(watchDirectoryPath),
+		MetaInfo:           meta,
 	}
 
 	go watcher.NotificationWaiter.Wait(data)

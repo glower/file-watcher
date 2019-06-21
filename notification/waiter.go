@@ -1,5 +1,5 @@
 /*
-Package notifications fixes the problem of multiple file change notifications for the same file from the OS API.
+Package notification fixes the problem of multiple file change notifications for the same file from the OS API.
 With FileNotificationWaiter(chanA, chanB, data) you can send data to the chanB if nothing was send to the chanA for 5 seconds
 
 The flow:

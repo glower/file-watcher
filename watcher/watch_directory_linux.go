@@ -92,5 +92,5 @@ func goCallbackFileChange(croot, cpath, cfile *C.char, caction C.int) {
 		return
 	}
 
-	fileChangeNotifier(root, relativeFilePath, fi, action)
+	fileChangeNotifier(root, relativeFilePath, fi, action, nil)
 }

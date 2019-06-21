@@ -3,10 +3,10 @@ package notification
 import "strings"
 import "runtime/debug"
 
+// Level maps debug level
 type Level uint32
 
 const (
-	// UNSPECIFIED error level = 0
 	UNSPECIFIED Level = iota
 	TRACE
 	DEBUG
@@ -16,13 +16,14 @@ const (
 	CRITICAL
 )
 
-// Error ...
+// Error type represents error with stacktrace and error message
 type Error struct {
 	Stack   string
 	Message string
 	Level   string
 }
 
+// FormatError returns formattet error message
 func FormatError(level, msg string) Error {
 	stack := string(debug.Stack())
 
